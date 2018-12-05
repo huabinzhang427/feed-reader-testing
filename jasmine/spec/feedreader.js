@@ -21,20 +21,23 @@ $(function() {
          * allFeeds in app.js to be an empty array and refresh the
          * page?
          */
-        it('are defined', function() {
-            expect(allFeeds).toBeDefined();
-            expect(allFeeds.length).not.toBe(0);
-        });
 
+         function notEmpty(data) {
+           // 将相似的代码都移入到该方法中，避免重复编写相同代码。
+            expect(data).toBeDefined();
+            expect(data.length).not.toBe(0);
+         }
 
         /* TODO: Write a test that loops through each feed
          * in the allFeeds object and ensures it has a URL defined
          * and that the URL is not empty.
          */
+         // 编写一个测试遍历 allFeeds 对象里面的所有的源来保证有链接字段而且链接不是空的
          it('has URL defined and they are not empty', function() {
             allFeeds.forEach(function(feed) {
-                expect(feed.url).toBeDefined();
-                expect(feed.url.length).not.toBe(0);
+                notEmpty(feed.url);
+                var regularExpressionUrl = /^((ht|f)tps?):\/\/([\w\-]+(\.[\w\-]+)*\/)*[\w\-]+(\.[\w\-]+)*\/?(\?([\w\-\.,@?^=%&:\/~\+#]*)+)?/; // 检查 URL 格式是否正确的正规表达式
+                expect(feed.url).toMatch(regularExpressionUrl); // 检查格式
             });
         });
 
@@ -43,10 +46,10 @@ $(function() {
          * in the allFeeds object and ensures it has a name defined
          * and that the name is not empty.
          */
+         // 编写一个测试遍历 allFeeds 对象里面的所有的源来保证有名字字段而且不是空的
          it('has name defined and they are not empty', function() {
             allFeeds.forEach(function(feed) {
-                expect(feed.name).toBeDefined();
-                expect(feed.name.length).not.toBe(0);
+                notEmpty(feed.name);
             });
         });
     });
@@ -59,6 +62,10 @@ $(function() {
          * the CSS to determine how we're performing the
          * hiding/showing of the menu element.
          */
+         // 写一个测试用例保证菜单元素默认是隐藏的
+         it('is hidden', function() {
+            expect($('body').hasClass('menu-hidden')).toBe(true);
+         });
          
 
          /* TODO: Write a test that ensures the menu changes
@@ -66,6 +73,14 @@ $(function() {
           * should have two expectations: does the menu display when
           * clicked and does it hide when clicked again.
           */
+          // 当菜单图标被点击的时候菜单会切换可见状态
+          it('changes visibility on click', function() {
+            // 包含两个 expectation： 
+            $('a.menu-icon-link').trigger('click'); // 当点击图标的时候菜单是否显示
+            expect($('body').hasClass('menu-hidden')).toBe(false);
+            $('a.menu-icon-link').trigger('click'); // 再次点击的时候是否隐藏
+            expect($('body').hasClass('menu-hidden')).toBe(true);
+          });
          
     });
     /* TODO: Write a new test suite named "Initial Entries" */
@@ -76,7 +91,15 @@ $(function() {
          * Remember, loadFeed() is asynchronous so this test will require
          * the use of Jasmine's beforeEach and asynchronous done() function.
          */
-        
+         // 测试保证 loadFeed 函数被调用而且工作正常
+        beforeEach(function(done) {
+            loadFeed(0, done);
+        });
+
+        // 在 .feed 容器元素里面至少有一个 .entry 的元素
+        it('are present', function() {
+            expect($('.feed .entry').length).toBeGreaterThan(0);
+        });
 
     });
     /* TODO: Write a new test suite named "New Feed Selection" */
@@ -85,6 +108,17 @@ $(function() {
          * by the loadFeed function that the content actually changes.
          * Remember, loadFeed() is asynchronous.
          */
+
+         beforeEach(function(done) {
+            loadFeed(0, function() {
+                oldFeed = $('.feed').html();
+                loadFeed(1, done);
+            });
+         });
+
+         it('is different from old', function() {
+            expect($('.feed').html()).not.toBe(oldFeed);
+         });
 
     });     
 }());
